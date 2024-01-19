@@ -5,16 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <link rel="stylesheet" href="main.css" />
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
   </head>
   <body>
     <div id="typeahead-container">
       <input type="text" id="typeahead-input" placeholder="Search for a state" />
-      <div id="typeahead-results">
-        <div class="result-item active">aaaaaa</div>
-        <div class="result-item">bbbbb</div>
-        <div class="result-item">cccccc</div>
-        <div class="result-item">ddddd</div>
-      </div>
+      <div id="typeahead-results"></div>
     </div>
   </body>
 </html>
+<script>
+  const $input = $('#typeahead-input');
+  const $resultsContainer = $('#typeahead-results');
+  let debounceTimer;
+  $(document).ready(() => {
+    $input.on('input', () => {
+      clearTimeout(debounceTimer);
+      // 設定debounce time 防止不斷呼叫API
+      debounceTimer = setTimeout(() => {
+        const query = $input.val().trim();
+        getStates(query, function (states) {
+          displayResults(states);
+        });
+      }, 300);
+    });
+
+    $input.on('keydown', (e) => {
+      switch (e.keyCode) {
+        case 13: // Enter
+          selectResult();
+          break;
+        case 38: // 上＆下鍵
+        case 40:
+          navigateResults(e.keyCode);
+          break;
+      }
+    });
+
+    $input.on('focus', () => {
+      const query = $input.val().trim();
+      getStates(query, function (states) {
+        displayResults(states);
+      });
+    });
+
+    $resultsContainer.on('mousedown', '.result-item', () => {
+      $input.val($(this).text());
+      $resultsContainer.hide();
+    });
+
+    $resultsContainer.on('mouseenter', '.result-item', () => {
+      $resultsContainer.find('.result-item').removeClass('active');
+      $(this).addClass('active');
+    });
+    // 點擊空白處關閉List
+    $(document).on('mousedown', (e) => {
+      if (!$resultsContainer.is(e.target) && $resultsContainer.has(e.target).length === 0) {
+        $resultsContainer.hide();
+      }
+    });
+  });
+
+  function getStates(query, callback) {
+    $.ajax({
+      url: 'http://localhost:5000/states',
+      method: 'GET',
+      data: { state: query },
+      success: function (data) {
+        callback(data);
+      },
+      error: function (error) {
+        console.error('Error fetching states:', error);
+      },
+    });
+  }
+
+  function displayResults(results) {
+    $resultsContainer.empty();
+    if (results.length > 0) {
+      results.slice(0, 8).forEach((result) => {
+        $resultsContainer.append(`<div class="result-item">${result}</div>`);
+      });
+      $resultsContainer.show();
+    } else {
+      $resultsContainer.hide();
+    }
+  }
+
+  function navigateResults(keyCode) {
+    const $resultItems = $resultsContainer.find('.result-item');
+    const currentIndex = $resultItems.index($resultItems.filter('.active'));
+
+    if (keyCode === 38 && currentIndex > 0) {
+      $resultItems.removeClass('active');
+      $resultItems.eq(currentIndex - 1).addClass('active');
+    } else if (keyCode === 40 && currentIndex < $resultItems.length - 1) {
+      $resultItems.removeClass('active');
+      $resultItems.eq(currentIndex + 1).addClass('active');
+    }
+  }
+
+  function selectResult() {
+    const $selectedResult = $resultsContainer.find('.result-item.active');
+    if ($selectedResult.length > 0) {
+      $input.val($selectedResult.text());
+      $resultsContainer.hide();
+    }
+  }
+</script>

@@ -18,7 +18,7 @@
     left: 0;
     width: 100%;
     border: 1px solid #ccc;
-    max-height: 250px;
+    max-height: 300px;
     overflow-y: auto;
   }
 
