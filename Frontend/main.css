@@ -1,0 +1,37 @@
+#typeahead-container {
+    position: relative;
+    width: 300px;
+    margin: 50px auto;
+  }
+
+  #typeahead-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    padding-inline: 0px;
+    padding-left: 5px;
+  }
+
+  #typeahead-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    border: 1px solid #ccc;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+
+  .result-item {
+    padding: 10px;
+    cursor: pointer;
+  }
+
+  .result-item:hover {
+    background-color: #f0f0f0;
+    color: black;
+  }
+  .active {
+    background-color: #007bff !important;
+    color: white !important;
+  }
